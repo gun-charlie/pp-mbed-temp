@@ -1,0 +1,7 @@
+^BUILD$
+^.mbed$
+^compile_commands.json$
+^.clangd$
+^.cache$
+^mcp3208$
+^mbed$
