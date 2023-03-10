@@ -3,7 +3,7 @@
 #include "mbed.h"
 SPI ADC(p11,p12,p13);
 DigitalOut cs[2] = {p14, p26};
-Serial pc(USBTX, USBRX, 9600);
+RawSerial pc(USBTX, USBRX, 9600);
 #define START_BIT   0x04
 #define MODE_SINGLE 0x02    // Single-ended mode
 #define MODE_DIFF   0x00    // Differential mode
@@ -35,6 +35,7 @@ float Rse=0.05;
 float Gain=50;
 
 float gal;
+Timer t;
 
 int main(void)
 {
@@ -49,11 +50,12 @@ int main(void)
     float gain = -R5*I/R4;
     float off = Vreft+I*R3;
     
-    
-    while(1){
-        commandget();
-        if(cmdflag == 1){
-            if(rcmd == 'a'){
+
+    commandget();
+    if(cmdflag == 1){
+        if(rcmd == 'a'){
+            while(1){
+                t.start();
                 for(int adc_num = 0; adc_num < 2; adc_num++){
                     for(int i = 0; i < 8; i++){
                         HK_data[hk_num] = MCP3208_get(i, adc_num);
@@ -61,9 +63,7 @@ int main(void)
                         hk_num++;
                     }
                 }
-                //3.3V
-                //pc.printf("ADC_num: 0, CH[0]: Volt = %.5f[V]\n\r", Vref * (float)HK_data[0] / 4096);
-                //Temperature
+
                 volt = Vref*(float)HK_data[0] / 4096*(R_1 + R_2)/R_1;
                 Rth = (volt-off)/gain+R3;
                 temp = (Rth-Pt)/(ce*Pt);
@@ -75,7 +75,6 @@ int main(void)
                 voltb = Vref*(float)HK_data[2] / 4096*(R_1 + R_2)/R_1;
                 Rthb = (voltb-off)/gain+R3;
                 tempb = (Rthb-Pt)/(ce*Pt);
-                
                 
                 voltc = Vref*(float)HK_data[3] / 4096*(R_1 + R_2)/R_1;
                 Rthc = (voltc-off)/gain+R3;
@@ -97,15 +96,16 @@ int main(void)
                 Rthg = (voltg-off)/gain+R3;
                 tempg = (Rthg-Pt)/(ce*Pt);
                 
-                
-                pc.printf("ADC_num: 0, CH[0]: Temp = %.5f[degree]\n\r", temp);
-                pc.printf("ADC_num: 0, CH[1]: Temp = %.5f[degree]\n\r", tempa);
-                pc.printf("ADC_num: 0, CH[2]: Temp = %.5f[degree]\n\r", tempb);
-                pc.printf("ADC_num: 0, CH[3]: Temp = %.5f[degree]\n\r", tempc);
-                //pc.printf("ADC_num: 0, CH[4]: Temp = %.5f[degree]\n\r", tempd);
-                //pc.printf("ADC_num: 0, CH[5]: Temp = %.5f[degree]\n\r", tempe);
-                //pc.printf("ADC_num: 0, CH[6]: Temp = %.5f[degree]\n\r", tempf);
-                //pc.printf("ADC_num: 0, CH[7]: Temp = %.5f[degree]\n\r", tempg);
+                pc.printf("time[s], %.5f, Temp[deg], %.5f, %.5f, %.5f, %.5f, %.5f, %.5f, %.5f, %.5f\r\n",
+                t.read(),temp,tempa,tempb,tempc,tempd,tempe,tempf,tempg);
+                // pc.printf("time, %.5f, CH[0]: Temp = %.5f[degree]\n\r", t.read(), temp);
+                // pc.printf("time, %.5f, CH[1]: Temp = %.5f[degree]\n\r", t.read(), tempa);
+                // pc.printf("time, %.5f, CH[2]: Temp = %.5f[degree]\n\r", t.read(), tempb);
+                // pc.printf("time, %.5f, CH[3]: Temp = %.5f[degree]\n\r", t.read(), tempc);
+                // pc.printf("time, %.5f, CH[4]: Temp = %.5f[degree]\n\r", t.read(), tempd);
+                // pc.printf("time, %.5f, CH[5]: Temp = %.5f[degree]\n\r", t.read(), tempe);
+                // pc.printf("time, %.5f, CH[6]: Temp = %.5f[degree]\n\r", t.read(), tempf);
+                // pc.printf("time, %.5f, CH[7]: Temp = %.5f[degree]\n\r", t.read(), tempg);
                 
                 //Galvanometer
                 //gal = Vref * (float)HK_data[2] / 4096/Gain/Rse;
@@ -113,13 +113,15 @@ int main(void)
                 //pc.printf("ADC_num: 1, CH[0]: Volt = %.5f[V]\n\r", Vref * (float)HK_data[3] / 4096);
                 //pc.printf("ADC_num: 1, CH[1]: Volt = %.5f[V]\n\r", Vref * (float)HK_data[4] / 4096);
                 //pc.printf("ADC_num: 1, CH[2]: Volt = %.5f[V]\n\r", Vref * (float)HK_data[5] /｝｝ 4096);
-            }
+                wait(1);
+            }   
         }
-        for(int j=0; j<hk_num; j++){
-            //pc.printf("HK[%d]: %d\n\r", j, HK_data[j]);
-        } 
-        initialize();
     }
+    for(int j=0; j<hk_num; j++){
+        //pc.printf("HK[%d]: %d\n\r", j, HK_data[j]);
+    } 
+    initialize();
+    
     
 }
 
