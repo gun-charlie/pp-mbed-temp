@@ -1,7 +1,7 @@
 //reference
 //https://docs.google.com/document/d/197dgqlNFhn72JrBeSYGtR4Y7DJQRUKC61oHVD9dvLNY/edit
 #include "mbed.h"
-SPI ADC(p11,p12,p13);
+SPI ADC(p11,p12,p13); //mosi, miso, sclk
 DigitalOut cs[2] = {p14, p26};
 RawSerial pc(USBTX, USBRX, 9600);
 #define START_BIT   0x04
@@ -54,9 +54,9 @@ int main(void)
     commandget();
     if(cmdflag == 1){
         if(rcmd == 'a'){
+            t.start();
             while(1){
-                t.start();
-                for(int adc_num = 0; adc_num < 2; adc_num++){
+                for(int adc_num = 0; adc_num < 1; adc_num++){
                     for(int i = 0; i < 8; i++){
                         HK_data[hk_num] = MCP3208_get(i, adc_num);
                         //pc.printf("i = %d, ADC_num: %d, return = %d\n\r",i, adc_num, HK_data[hk_num]);
@@ -84,20 +84,23 @@ int main(void)
                 Rthd = (voltd-off)/gain+R3;
                 tempd = (Rthd-Pt)/(ce*Pt);
                 
-                volte = Vref*(float)HK_data[5] / 4096*(R_1 + R_2)/R_1;
-                Rthe = (volte-off)/gain+R3;
-                tempe = (Rthe-Pt)/(ce*Pt);
+                // volte = Vref*(float)HK_data[5] / 4096*(R_1 + R_2)/R_1;
+                // Rthe = (volte-off)/gain+R3;
+                // tempe = (Rthe-Pt)/(ce*Pt);
                 
-                voltf = Vref*(float)HK_data[6] / 4096*(R_1 + R_2)/R_1;
-                Rthf = (voltf-off)/gain+R3;
-                tempf = (Rthf-Pt)/(ce*Pt);
+                // voltf = Vref*(float)HK_data[6] / 4096*(R_1 + R_2)/R_1;
+                // Rthf = (voltf-off)/gain+R3;
+                // tempf = (Rthf-Pt)/(ce*Pt);
                 
-                voltg = Vref*(float)HK_data[7] / 4096*(R_1 + R_2)/R_1;
-                Rthg = (voltg-off)/gain+R3;
-                tempg = (Rthg-Pt)/(ce*Pt);
-                
-                pc.printf("time[s], %.5f, Temp[deg], %.5f, %.5f, %.5f, %.5f, %.5f, %.5f, %.5f, %.5f\r\n",
-                t.read(),temp,tempa,tempb,tempc,tempd,tempe,tempf,tempg);
+                // voltg = Vref*(float)HK_data[7] / 4096*(R_1 + R_2)/R_1;
+                // Rthg = (voltg-off)/gain+R3;
+                // tempg = (Rthg-Pt)/(ce*Pt);
+                // pc.printf("time[s], %.5f\r\n", t.read());
+                // pc.printf("time[s], %.5f, Temp[deg], %.5f, %.5f, %.5f, %.5f, %.5f, %.5f, %.5f, %.5f\r\n",
+                // t.read(),temp,tempa,tempb,tempc,tempd,tempe,tempf,tempg);
+
+                // pc.printf("time[s], %.5f, Temp[deg], %.5f, %.5f, %.5f, %.5f, %.5f\r\n", t.read(),temp,tempa,tempb,tempc,tempd);
+                pc.printf("%.5f, %.5f, %.5f, %.5f, %.5f, %.5f\r\n", t.read(),temp,tempa,tempb,tempc,tempd);
                 // pc.printf("time, %.5f, CH[0]: Temp = %.5f[degree]\n\r", t.read(), temp);
                 // pc.printf("time, %.5f, CH[1]: Temp = %.5f[degree]\n\r", t.read(), tempa);
                 // pc.printf("time, %.5f, CH[2]: Temp = %.5f[degree]\n\r", t.read(), tempb);
@@ -114,12 +117,13 @@ int main(void)
                 //pc.printf("ADC_num: 1, CH[1]: Volt = %.5f[V]\n\r", Vref * (float)HK_data[4] / 4096);
                 //pc.printf("ADC_num: 1, CH[2]: Volt = %.5f[V]\n\r", Vref * (float)HK_data[5] /｝｝ 4096);
                 wait(1);
+                hk_num = 0;
             }   
         }
     }
-    for(int j=0; j<hk_num; j++){
-        //pc.printf("HK[%d]: %d\n\r", j, HK_data[j]);
-    } 
+    // for(int j=0; j<hk_num; j++){
+    //     //pc.printf("HK[%d]: %d\n\r", j, HK_data[j]);
+    // } 
     initialize();
     
     
